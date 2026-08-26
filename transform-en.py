@@ -27,6 +27,11 @@ def transform(s: str) -> str:
     s = s.replace("Kortix", "Dosco")
     s = s.replace("Suna", "Dosco")  # old product name, fully rebrand
 
+    # --- tagline: "open-source AI Management System" -> "Dosco Agent Terminal" ---
+    s = s.replace("open-source AI Management System", "Dosco Agent Terminal")
+    s = s.replace("open-source AI management system", "Dosco Agent Terminal")
+    s = s.replace("open source AI Management System", "Dosco Agent Terminal")
+
     # --- remove open-source / self-host phrasing (adjectives) ---
     s = re.sub(r"open[\s-]?source", "", s, flags=re.IGNORECASE)
     s = re.sub(r"self[\s-]?host(?:able)?", "", s, flags=re.IGNORECASE)

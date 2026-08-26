@@ -160,4 +160,10 @@ grep -rl --include=*.ts --include=*.tsx -E "\bKortix\b" \
   sed -i -E "s/\bKortix\b/Dosco/g" "$f"
 done || true
 
+# 9) Patch landing/hero copy, remove the header GitHub link, and slim the footer
+#    for the Dosco rebrand. Runs AFTER the global Kortix->Dosco pass, so the
+#    `old` strings in patch-copy.py are the post-rename upstream strings.
+echo "[apply] patching Dosco landing/header/footer copy..."
+python3 "$DIR/patch-copy.py" "$WEB"
+
 echo "[apply] done. Branding stamped. Next: build-frontend.sh"

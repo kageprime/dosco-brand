@@ -4,7 +4,7 @@
 # and build-frontend.sh.
 
 # Email that every kortix.com contact/support address is repointed to.
-export DOSCO_SUPPORT_EMAIL="${DOSCO_SUPPORT_EMAIL:-support@dosco.example.com}"
+export DOSCO_SUPPORT_EMAIL="${DOSCO_SUPPORT_EMAIL:-support@dosco.live}"
 
 # Canonical origin used in SEO metadata / canonical URLs.
 export DOSCO_CANONICAL="${DOSCO_CANONICAL:-https://dosco.example.com}"
