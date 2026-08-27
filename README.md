@@ -7,12 +7,16 @@ stores your changes, so pulling upstream never causes merge conflicts.
 
 ## Files
 - `config.sh`        — branding variables (edit `DOSCO_SUPPORT_EMAIL`, `DOSCO_CANONICAL`, names).
+- `stamp-assets.py`  — stamps real brand artwork (light/dark/icon) onto `apps/web/public`,
+                       generating exact-size favicons/tiles and SVG wrappers for `.svg` slots.
 - `transform-en.py`  — rewrites `apps/web/translations/en.json` (Kortix→Dosco,
                        strips "open source"/"self-host", neutralizes URLs, repoints emails).
 - `apply.sh`         — stamps branding onto a CLEAN checkout (assets, en.json, metadata,
                        manifest, removes external Kortix/GitHub/social links).
 - `build-frontend.sh`— host Next.js standalone build + `docker buildx` → `kortix/kortix-frontend:local`.
-- `assets/`          — Dosco logos/favicons (replace placeholders with real brand files).
+- `assets/`          — real brand files: `doscologo-dark.png` (dark artwork, light bg),
+                       `doscologo-light.png` (light artwork, dark bg), `doscologoIcon.png`
+                       (icon → favicons/avatars). `assets/derived/` is generated, gitignored.
 
 ## Update workflow (pull upstream, keep reskin)
 ```sh

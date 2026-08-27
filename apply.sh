@@ -17,60 +17,18 @@ cd "$REPO"
 # 1) Ensure a pristine base so re-application is idempotent & pull-safe.
 git checkout -- apps/web 2>/dev/null || true
 
-# 2) Replace Kortix image/logo/banner assets with Dosco equivalents.
-LOGO="$DIR/assets/_dosco-logo.svg"
-TILE="$DIR/assets/_dosco-tile.png"
-[ -f "$LOGO" ] || { echo "[apply] ERROR: missing $LOGO" >&2; exit 1; }
-[ -f "$TILE" ] || { echo "[apply] ERROR: missing $TILE" >&2; exit 1; }
-
-echo "[apply] replacing explicitly-named brand files..."
-for f in \
-  kortix-symbol.svg \
-  kortix-logomark-white.svg \
-  logomark-white.svg \
-  kortix-brandmark-bg.svg \
-  favicon.png \
-  favicon-light.png \
-  brand/chrome.svg ; do
-  [ -f "$WEB/public/$f" ] || continue
-  case "$f" in
-    *.svg) cp "$LOGO" "$WEB/public/$f" ;;
-    *)     cp "$TILE" "$WEB/public/$f" ;;
-  esac
+# 2) Stamp real Dosco brand assets (light/dark/icon mapping + derived sizes).
+#    SVG slots get wrappers with the PNG embedded, so hardcoded .svg paths work.
+LOGO_DARK="$DIR/assets/doscologo-dark.png"
+LOGO_LIGHT="$DIR/assets/doscologo-light.png"
+LOGO_ICON="$DIR/assets/doscologoIcon.png"
+for f in "$LOGO_DARK" "$LOGO_LIGHT" "$LOGO_ICON"; do
+  [ -f "$f" ] || { echo "[apply] ERROR: missing brand asset $f" >&2; exit 1; }
 done
 
-# 2b) Bulk-replace EVERY remaining *kortix* image (logos, banners, wallpapers,
-#     og images, usecase logos, …) so no Kortix artwork is ever served.
-echo "[apply] bulk-replacing all *kortix* image assets with Dosco..."
-find "$WEB/public" -type f -iname '*kortix*' \( \
-  -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \
-  -o -name '*.svg' -o -name '*.gif' \) | while read -r f; do
-  case "$f" in
-    *.svg) cp "$LOGO" "$f" ;;
-    *)     cp "$TILE" "$f" ;;
-  esac
-done
-
-# 2c) Kortix brandkit logo/profile files (named Brandmark/Logomark/Avatar, not
-#     '*kortix*') — overwrite their artwork too.
-echo "[apply] replacing brandkit logo/profile artwork..."
-find "$WEB/public/brandkit" -type f \( -name '*.svg' -o -name '*.png' \) 2>/dev/null | while read -r f; do
-  case "$f" in
-    *.svg) cp "$LOGO" "$f" ;;
-    *)     cp "$TILE" "$f" ;;
-  esac
-done
-
-# 2d) Other known brand files (not matched above).
-echo "[apply] replacing other known brand files..."
-for f in logo_black.png logomark-white.svg banner.png marko.png; do
-  [ -f "$WEB/public/$f" ] || continue
-  case "$f" in
-    *.svg) cp "$LOGO" "$f" ;;
-    *)     cp "$TILE" "$f" ;;
-  esac
-done
-echo "[apply] asset replacement done (note: marketing .mp4/.webm videos are left as-is — cannot regenerate)."
+echo "[apply] stamping Dosco brand assets (light/dark/icon)..."
+python3 "$DIR/stamp-assets.py" "$WEB/public"
+echo "[apply] asset replacement done (marketing .mp4/.webm videos left as-is)."
 
 # 3) Rebrand the i18n strings (the bulk of user-facing "Kortix" text).
 echo "[apply] transforming en.json..."
