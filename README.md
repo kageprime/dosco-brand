@@ -20,29 +20,49 @@ stores your changes, so pulling upstream never causes merge conflicts.
 
 ## Update workflow (pull upstream, keep reskin + local commits)
 
-The `local-dev` branch carries **local commits that must survive every pull**
-(OAuth login, Zen model catalog, docs rebrand). Use **rebase, never
-`reset --hard`** — a reset would delete them:
+The Suna repo uses a **two-branch model** — branding is committed, but on its
+own branch so upstream rebases stay conflict-free:
+
+```
+local-dev : upstream/main + local feature commits   (OAuth, Zen models, docs)
+deploy    : local-dev + ONE squashed brand-stamp commit   ← build from here
+```
+
+**The whole update cycle is one command:**
+
+```sh
+bash /home/ubuntu/dosco-brand/refresh-brand.sh            # sync + rebrand
+bash /home/ubuntu/dosco-brand/refresh-brand.sh --build    # … + frontend image
+```
+
+What it does: fetches `upstream/main`, **rebases** `local-dev` onto it (never
+`reset --hard` — that would delete the local commits), then resets `deploy` to
+the new `local-dev`, re-runs `apply.sh`, and squashes the stamp into a fresh
+`chore(brand)` commit. If the rebase hits conflicts, resolve, `git add`,
+`git rebase --continue`, re-run.
+
+Manual equivalent:
 
 ```sh
 cd /home/ubuntu/suna
-git fetch upstream main
-git rebase upstream/main               # replays local commits onto upstream tip
-# resolve conflicts if any (likely: apps/api model catalog, auth page), then:
-git rebase --continue
+git fetch upstream main && git rebase upstream/main
+git checkout deploy && git reset --hard local-dev
+bash /home/ubuntu/dosco-brand/apply.sh
+git add -A && git commit -m 'chore(brand): Dosco stamp'
+git checkout local-dev
 
-cd /home/ubuntu/dosco-brand
-bash apply.sh                           # re-stamp Dosco branding (cleans apps/web first)
-bash build-frontend.sh                  # rebuild kortix/kortix-frontend:local
+cd /home/ubuntu/dosco-brand && bash build-frontend.sh      # → kortix/kortix-frontend:local
 cd /home/ubuntu/.config/kortix/self-host/default
 docker compose -p kortix-default --env-file .env up -d --no-deps frontend
 # (restart supabase-kong too if supabase-auth was recreated — Kong caches its IP)
 ```
 
+**Build/deploy from the `deploy` branch** — `build-frontend.sh` packages the
+working tree, so switch to `deploy` first (refresh-brand.sh leaves you on
+`local-dev`).
+
 `apply.sh` runs `git checkout -- apps/web` first — **anything uncommitted in
 apps/web is lost**, so always commit local work before rebranding.
-The stamped branding (544 files) stays uncommitted; it is regenerated from this
-overlay on every apply.
 
 > ⚠️ **API contract caution:** the frontend must not jump far ahead of the API
 > image (`dosco/kortix-api:0.13.5-zen.3`). Upstream's session-surface refactor
