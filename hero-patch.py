@@ -63,9 +63,9 @@ def patch_content_ts():
         " *  ships finished work, not chat. Rendered by the Hero component in\n"
         " *  lieu of the product/chat surfaces frame. */\n"
         "export const heroDeliverables = [\n"
-        "  { id: 'engineering', role: 'UI engineer', artifact: 'Design handoff', note: 'FINAL' },\n"
-        "  { id: 'accounting', role: 'Accountant', artifact: 'Close of month', note: 'FINAL' },\n"
-        "  { id: 'analytics', role: 'Analyst', artifact: 'Analytics report', note: 'FINAL' },\n"
+        "  { id: 'frontend', role: 'Frontend', artifact: 'Design handoff', note: 'FINAL' },\n"
+        "  { id: 'backend', role: 'Backend', artifact: 'API shipped', note: 'FINAL' },\n"
+        "  { id: 'pm', role: 'Product', artifact: 'Roadmap locked', note: 'FINAL' },\n"
         "] as const;\n"
     )
     s = s[:end] + insert + s[end:]
