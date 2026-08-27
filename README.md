@@ -18,18 +18,36 @@ stores your changes, so pulling upstream never causes merge conflicts.
                        `doscologo-light.png` (light artwork, dark bg), `doscologoIcon.png`
                        (icon → favicons/avatars). `assets/derived/` is generated, gitignored.
 
-## Update workflow (pull upstream, keep reskin)
+## Update workflow (pull upstream, keep reskin + local commits)
+
+The `local-dev` branch carries **local commits that must survive every pull**
+(OAuth login, Zen model catalog, docs rebrand). Use **rebase, never
+`reset --hard`** — a reset would delete them:
+
 ```sh
 cd /home/ubuntu/suna
-git fetch upstream
-git reset --hard upstream/main          # or a specific tag, e.g. v0.13.6
+git fetch upstream main
+git rebase upstream/main               # replays local commits onto upstream tip
+# resolve conflicts if any (likely: apps/api model catalog, auth page), then:
+git rebase --continue
+
 cd /home/ubuntu/dosco-brand
-bash apply.sh                           # re-stamp Dosco branding
+bash apply.sh                           # re-stamp Dosco branding (cleans apps/web first)
 bash build-frontend.sh                  # rebuild kortix/kortix-frontend:local
 cd /home/ubuntu/.config/kortix/self-host/default
-docker compose -p kortix-default -f docker-compose.yml up -d --no-deps frontend
+docker compose -p kortix-default --env-file .env up -d --no-deps frontend
+# (restart supabase-kong too if supabase-auth was recreated — Kong caches its IP)
 ```
-`apply.sh` runs `git checkout -- apps/web` first, so re-application is idempotent.
+
+`apply.sh` runs `git checkout -- apps/web` first — **anything uncommitted in
+apps/web is lost**, so always commit local work before rebranding.
+The stamped branding (544 files) stays uncommitted; it is regenerated from this
+overlay on every apply.
+
+> ⚠️ **API contract caution:** the frontend must not jump far ahead of the API
+> image (`dosco/kortix-api:0.13.5-zen.3`). Upstream's session-surface refactor
+> (#6987) changed web↔api interplay — after pulling 0.13.6-dev commits, rebuild
+> the API image from the same commit before deploying the new frontend.
 
 ## Notes
 - API + LLM gateway keep running the upstream `:0.13.5` images (not rebuilt).
