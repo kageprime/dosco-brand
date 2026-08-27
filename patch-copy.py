@@ -31,8 +31,8 @@ patch("src/features/marketing/landing/content.ts",
       "  ctaPrimary: 'Get started',\n"
       "  ctaSecondary: 'Request demo',\n"
       "  trust: 'Open source \u00b7 Any model, your keys \u00b7 Self-host, VPC, or on-prem',",
-      "  title: 'Dosco Agent Terminal',\n"
-      "  sub: \"Dosco is not a chatbot that returns chat text. Dosco delivers deliverables \u2014 actual work that counts. Drop it into a sprint and it works as a teammate; it becomes anything you need, from UI engineer to accountant, every role run at 100% capacity.\",\n"
+      "  title: 'Built to work, not to talk.',\n"
+      "  sub: \"Dosco doesn't return chat. It returns work. Drop it into a sprint and it takes the role that sprint needs \u2014 engineer, accountant, analyst \u2014 every role run at full capacity. You don't get a paragraph back. You get the deliverable.\",\n"
       "  ctaPrimary: 'Get started',\n"
       "  ctaSecondary: 'Request demo',\n"
       "  trust: 'Any model, your keys \u00b7 Self-host, VPC, or on-prem',")

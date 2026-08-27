@@ -124,4 +124,9 @@ done || true
 echo "[apply] patching Dosco landing/header/footer copy..."
 python3 "$DIR/patch-copy.py" "$WEB"
 
+# 10) Hero visual: drop the product/chat surface frame, render the deliverable
+#     row instead (and insert heroDeliverables copy into content.ts).
+echo "[apply] patching Dosco hero visual..."
+python3 "$DIR/hero-patch.py" "$WEB"
+
 echo "[apply] done. Branding stamped. Next: build-frontend.sh"
