@@ -129,4 +129,12 @@ python3 "$DIR/patch-copy.py" "$WEB"
 echo "[apply] patching Dosco hero visual..."
 python3 "$DIR/hero-patch.py" "$WEB"
 
+# 11) Logo component: upstream draws the Kortix mark/wordmark as inline SVG
+#     path data inside kortix-logo.tsx — unreachable by the public/ asset
+#     stamp. Derive transparent Dosco marks into public/brand/ and swap the
+#     fallback <svg> branches to theme-swapped <img> renders. Must run AFTER
+#     the global sed passes so this code is not rewritten by them.
+echo "[apply] patching Dosco logo component..."
+python3 "$DIR/patch-logo.py" "$WEB"
+
 echo "[apply] done. Branding stamped. Next: build-frontend.sh"
