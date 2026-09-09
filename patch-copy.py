@@ -372,4 +372,23 @@ patch("src/app/(public)/(marketing)/contact/page.tsx",
       "const CAL_NAMESPACE = 'kortix-enterprise-demo';",
       "const CAL_NAMESPACE = 'dosco-enterprise-demo';")
 
+# ---- (home)/page.tsx : drop the open-source (GitHub stars/repo) section ----
+# The whole block is Kortix open-source promo — star count on kortix-ai/suna,
+# the star chart, and repo links — none of which belongs on the Dosco landing
+# page. Pattern-based so upstream reshuffles of surrounding copy don't break it.
+hp = f"{WEB}/src/app/(public)/(marketing)/(home)/page.tsx"
+try:
+    s = open(hp, encoding="utf-8").read()
+except FileNotFoundError:
+    print("[patch] SKIP (missing): (home)/page.tsx")
+else:
+    before = s
+    s = re.sub(r"[^\n]*open-source/open-source-section';\n", "", s)
+    s = re.sub(r"\n[^\n]*<OpenSourceSection */>\n", "\n", s)
+    if s != before:
+        open(hp, "w", encoding="utf-8").write(s)
+        print("[patch] OK: (home)/page.tsx (OpenSourceSection removed)")
+    else:
+        print("[patch] SKIP (no change): (home)/page.tsx")
+
 print("[patch] done")
