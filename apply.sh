@@ -48,15 +48,15 @@ s = s.replace(
 s = s.replace("name: 'Kortix',", "name: 'Dosco Agent Network',")
 s = s.replace(
     "title: 'Kortix – The AI Command Center for Your Company',",
-    "title: 'Dosco Agent Network – The AI Command Center for Your Company',",
+    "title: 'Dosco Agent Network – The Agentic OS for Your Company',",
 )
 s = s.replace(
     "Kortix, AI command center, autonomous company operating system",
-    "Dosco Agent Network, the private AI command center for your company",
+    "Dosco Agent Network, the private agentic OS for your company",
 )
 s = s.replace(
     "The open-source AI command center for your company.",
-    "The private AI command center for your company.",
+    "The private agentic OS for your company.",
 )
 # strip any remaining open-source / self-host phrasing in this file.
 # Grammar-aware (mirrors transform-en.py): consume ed/ing/able forms whole,
@@ -148,6 +148,8 @@ d["description"] = re.sub(
         .replace("Kortix", "Dosco")
         .replace("open-source", "")
         .replace("open source", "")
+        .replace("AI Command Center", "Agentic OS")
+        .replace("AI command center", "agentic OS")
     ),
 ).strip()
 # Kortix native-app store listings: Dosco ships no native wrapper, so drop
@@ -169,7 +171,7 @@ if [ -f "$SC" ]; then
   # repoint the contact mailto to Dosco
   sed -i "s/hey@kortix\.com/$DOSCO_SUPPORT_EMAIL/g" "$SC"
   # rebrand displayed "Kortix" text (whole-word only; preserves component identifiers)
-  sed -i -E "s/\bKortix\b/Dosco/g; s/open AI command center/private AI command center/g" "$SC"
+  sed -i -E "s/\bKortix\b/Dosco/g; s/open AI command center/private agentic OS/g" "$SC"
 fi
 
 # 7) Global safety pass: neutralize any remaining kortix.com / github URLs in source.

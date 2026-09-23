@@ -39,7 +39,7 @@ patch("src/features/marketing/landing/content.ts",
 
 patch("src/features/marketing/landing/content.ts",
       "  lead: 'The leading open-source alternative to',",
-      "  lead: 'The AI command center that replaces',")
+      "  lead: 'The agentic OS that replaces',")
 
 patch("src/features/marketing/landing/content.ts",
       "  sub: 'Start with one job and grow from there.',\n"
@@ -468,6 +468,13 @@ patch("src/features/marketing/landing/content.ts",
 patch("src/lib/site-config.ts",
       "          name: 'Self-hosted',",
       "          name: 'On-prem',")
+# ---- positioning: agentic OS, not AI command center ----
+patch("src/features/marketing/landing/content.ts",
+      "  lead: 'The AI command center that replaces',",
+      "  lead: 'The agentic OS that replaces',")
+patch("src/lib/site-config.ts",
+      "          description: 'Dosco – the private AI command center for your company.',",
+      "          description: 'Dosco – the private agentic OS for your company.',")
 
 # ---- i18n-complete test: the blanked-label exemption is obsolete ----
 # transform-en.py now writes real copy ("No lock-in" / "On-prem" /
@@ -519,5 +526,13 @@ if _os.path.exists(f"{_bk}/{_old_zip}") and not _os.path.exists(f"{_bk}/{_new_zi
 patch("src/components/home/navbar.tsx",
       "'/brandkit/kortix-brand-assets.zip'",
       "'/brandkit/dosco-brand-assets.zip'")
+
+# ---- test fixture guard: legacy agent name must stay Kortix ----
+# The global Kortix->Dosco pass rewrites 'Kortix Agent' in this fixture, but
+# the test asserts LEGACY display names (the impl matches lowercase
+# 'kortix agent' literals the pass never touches). Restore after the pass.
+patch("src/features/workspace/customize/sections/view/changes-timeline.test.ts",
+      "author_name: 'Dosco Agent'",
+      "author_name: 'Kortix Agent'")
 
 print("[patch] done")
