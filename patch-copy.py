@@ -391,4 +391,64 @@ else:
     else:
         print("[patch] SKIP (no change): (home)/page.tsx")
 
+# ---- support hub + support-adjacent contacts: Dosco mailboxes ----
+# Upstream originals below (run AFTER the global pass, like everything here).
+# STATUS_URL points at the live status page (status.dosco.live, Better Stack).
+patch("src/app/(public)/(marketing)/support/page.tsx",
+      "const SUPPORT_EMAIL = 'support@kortix.com';",
+      "const SUPPORT_EMAIL = 'support@dosco.live';")
+patch("src/app/(public)/(marketing)/support/page.tsx",
+      "const SECURITY_EMAIL = 'security@kortix.com';",
+      "const SECURITY_EMAIL = 'security@dosco.live';")
+patch("src/app/(public)/(marketing)/support/page.tsx",
+      "const STATUS_URL = 'https://status.kortix.com';",
+      "const STATUS_URL = 'https://status.dosco.live';")
+patch("src/app/(public)/(marketing)/support/page.tsx",
+      'detail="status.kortix.com"',
+      'detail="Dosco status"')
+patch("src/app/(public)/(marketing)/support/page.tsx",
+      'value="what-is-kortix"',
+      'value="what-is-dosco"')
+patch("src/components/common/system-fault.tsx",
+      '<a href="mailto:support@kortix.ai">',
+      '<a href="mailto:support@dosco.live">')
+patch("src/app/(system)/countryerror/page.tsx",
+      'href="mailto:support@kortix.ai"',
+      'href="mailto:support@dosco.live"')
+patch("src/features/contact/demo-qualifier-modal.tsx",
+      "const CONTACT_EMAIL = 'hey@kortix.ai';",
+      "const CONTACT_EMAIL = 'support@dosco.live';")
+patch("src/features/workspace/new/new-workspace-page.tsx",
+      'href="mailto:support@kortix.ai"',
+      'href="mailto:support@dosco.live"')
+patch("src/features/marketing/security-page/content.ts",
+      "email: 'security@kortix.com',",
+      "email: 'security@dosco.live',")
+patch("src/lib/seo/metadata.ts",
+      "      site: '@kortix',\n      creator: '@kortix',",
+      "      site: '@dosco',\n      creator: '@dosco',")
+patch("content/use-cases/customer-support.mdx",
+      "The support agent we run on Kortix",
+      "The support agent we run on Dosco")
+patch("content/use-cases/customer-support.mdx",
+      "We run our own customer support on Kortix",
+      "We run our own customer support on Dosco")
+patch("content/use-cases/customer-support.mdx",
+      "connected to an agent running on Kortix.",
+      "connected to an agent running on Dosco.")
+patch("content/use-cases/customer-support.mdx",
+      "The controls on Kortix:",
+      "The controls on Dosco:")
+patch("content/use-cases/customer-support.mdx",
+      '<Fact label="Team">Kortix — the company behind this platform</Fact>',
+      '<Fact label="Team">Dosco — the company behind this platform</Fact>')
+# Legal contact mailboxes (two identical lines — patch() replaces first match
+# only, so call twice; SKIP-safe once both are stamped).
+patch("src/app/(public)/(seo)/legal/page.tsx",
+      '<a href="mailto:info@kortix.com" className={LINK}>',
+      '<a href="mailto:support@dosco.live" className={LINK}>')
+patch("src/app/(public)/(seo)/legal/page.tsx",
+      '<a href="mailto:info@kortix.com" className={LINK}>',
+      '<a href="mailto:support@dosco.live" className={LINK}>')
+
 print("[patch] done")

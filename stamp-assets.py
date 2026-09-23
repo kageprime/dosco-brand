@@ -40,6 +40,23 @@ def center_square(im: Image.Image) -> Image.Image:
     return im.crop((left, top, left + side, top + side))
 
 
+def fit_square(im: Image.Image, size: int, pad_ratio: float = 0.06) -> Image.Image:
+    """Fit the whole mark into a square on the artwork's own background.
+
+    Center-cropping the wide emblem cuts the wing tips and leaves a red
+    smear at favicon sizes. Fitting preserves the full mark; the canvas uses
+    the artwork's corner colour (near-black) so it reads as one image.
+    """
+    bg = im.convert("RGB").getpixel((0, 0)) + (255,)
+    canvas = Image.new("RGBA", (size, size), bg)
+    w, h = im.size
+    scale = (size * (1 - 2 * pad_ratio)) / max(w, h)
+    nw, nh = round(w * scale), round(h * scale)
+    small = im.resize((nw, nh), Image.LANCZOS)
+    canvas.alpha_composite(small, ((size - nw) // 2, (size - nh) // 2))
+    return canvas
+
+
 def resized(im: Image.Image, size: int) -> Image.Image:
     return im.resize((size, size), Image.LANCZOS)
 
@@ -74,7 +91,9 @@ def build_derived() -> dict:
     dark, light, icon = _load(DARK), _load(LIGHT), _load(ICON)
 
     icon_sq = center_square(icon)                     # 1024x1024
-    favicon32 = resized(icon_sq, 32)
+    favicon_src = fit_square(icon, 270)                 # full mark, not a crop
+    favicon32 = resized(favicon_src, 32)
+    favicon_svg_src = fit_square(icon, 270)
     icon512 = resized(icon_sq, 512)
     # Maskable icons need a safe zone: content at ~80% on a transparent canvas.
     logo512 = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
@@ -92,13 +111,16 @@ def build_derived() -> dict:
     mark_dark_svg = os.path.join(DERIVED, "_dosco-mark-dark.svg")   # for dark bg
     mark_light_svg = os.path.join(DERIVED, "_dosco-mark-light.svg") # for light bg
     icon_svg = os.path.join(DERIVED, "_dosco-icon.svg")
+    favicon_svg = os.path.join(DERIVED, "_dosco-favicon.svg")  # tab icon slot
 
     save_svg_wrapper(light, mark_dark_svg)
     save_svg_wrapper(dark, mark_light_svg)
     save_svg_wrapper(icon512, icon_svg)
+    save_svg_wrapper(favicon_svg_src, favicon_svg)
 
     return {
         "favicon32": favicon32_path,
+        "favicon_svg": favicon_svg,
         "logo512": logo512_path,
         "icon512": icon512_path,
         "mark_dark_svg": mark_dark_svg,
@@ -127,6 +149,7 @@ def stamp(web_public: str) -> None:
         "marko.png": ("raster", a["icon512"]),
         "banner.png": ("raster", a["light_wordmark"]),       # og banner
         # svg slots
+        "favicon.svg": ("svg", a["favicon_svg"]),      # tab/shortcut/apple icon
         "kortix-symbol.svg": ("svg", a["icon_svg"]),         # avatars/marks
         "brand/chrome.svg": ("svg", a["icon_svg"]),
         "logomark-white.svg": ("svg", a["mark_dark_svg"]),   # dark surfaces

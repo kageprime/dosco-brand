@@ -2,7 +2,7 @@
 
 This directory holds the **branding layer** that turns the upstream Suna/Kortix
 frontend into the private "Dosco Agent Network" product. It is kept *outside*
-the Suna source tree on purpose: the Suna repo (`/home/ubuntu/suna`) never
+the Suna source tree on purpose: the Suna repo (`/root/suna`) never
 stores your changes, so pulling upstream never causes merge conflicts.
 
 ## Files
@@ -31,8 +31,8 @@ deploy    : local-dev + ONE squashed brand-stamp commit   ← build from here
 **The whole update cycle is one command:**
 
 ```sh
-bash /home/ubuntu/dosco-brand/refresh-brand.sh            # sync + rebrand
-bash /home/ubuntu/dosco-brand/refresh-brand.sh --build    # … + frontend image
+bash /root/dosco-brand/refresh-brand.sh            # sync + rebrand
+bash /root/dosco-brand/refresh-brand.sh --build    # … + frontend image
 ```
 
 What it does: fetches `upstream/main`, **rebases** `local-dev` onto it (never
@@ -44,15 +44,15 @@ the new `local-dev`, re-runs `apply.sh`, and squashes the stamp into a fresh
 Manual equivalent:
 
 ```sh
-cd /home/ubuntu/suna
+cd /root/suna
 git fetch upstream main && git rebase upstream/main
 git checkout deploy && git reset --hard local-dev
-bash /home/ubuntu/dosco-brand/apply.sh
+bash /root/dosco-brand/apply.sh
 git add -A && git commit -m 'chore(brand): Dosco stamp'
 git checkout local-dev
 
-cd /home/ubuntu/dosco-brand && bash build-frontend.sh      # → kortix/kortix-frontend:local
-cd /home/ubuntu/.config/kortix/self-host/default
+cd /root/dosco-brand && bash build-frontend.sh      # → kortix/kortix-frontend:local
+cd /root/.config/kortix/self-host/default
 docker compose -p kortix-default --env-file .env up -d --no-deps frontend
 # (restart supabase-kong too if supabase-auth was recreated — Kong caches its IP)
 ```

@@ -50,6 +50,11 @@ def transform(s: str) -> str:
 
     # --- emails ---
     s = re.sub(r"[\w.+-]+@kortix\.com", EMAIL, s)
+    # .ai contact twins the .com rule misses (support hub, fault page,
+    # region block). Demo/placeholder personas (ada/grace/alan/dom) stay.
+    s = re.sub(r"\bsupport@kortix\.ai\b", EMAIL, s)
+    sec_domain = EMAIL.split("@", 1)[1] if "@" in EMAIL else "dosco.live"
+    s = re.sub(r"\bsecurity@kortix\.ai\b", f"security@{sec_domain}", s)
 
     # --- external URLs -> neutralize / repoint ---
     s = s.replace("https://github.com/kortix-ai/suna", "#")
