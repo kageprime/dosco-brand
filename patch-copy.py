@@ -325,14 +325,16 @@ patch("src/app/(public)/download/page.tsx",
       "} from '@/features/marketing/download/releases';\n",
       "")
 patch("src/app/(public)/download/page.tsx",
-      "  const [headerList, params, release] = await Promise.all([\n"
+      "  const [headerList, params, release, tI18nComplete] = await Promise.all([\n"
       "    headers(),\n"
       "    searchParams,\n"
       "    getLatestRelease(),\n"
+      "    getTranslations('hardcodedUi.i18nComplete'),\n"
       "  ]);",
-      "  const [headerList, params] = await Promise.all([\n"
+      "  const [headerList, params, tI18nComplete] = await Promise.all([\n"
       "    headers(),\n"
       "    searchParams,\n"
+      "    getTranslations('hardcodedUi.i18nComplete'),\n"
       "  ]);")
 patch("src/app/(public)/download/page.tsx",
       "  const desktopRows: CardRow[] = orderedDesktop(detected).map((os) => {\n"
@@ -355,8 +357,8 @@ patch("src/app/(public)/download/page.tsx",
       "    Mark: DESKTOP_MARKS[os],\n"
       "  }));")
 patch("src/app/(public)/download/page.tsx",
-       "  DESKTOP_ROWS,\n  MOBILE_CARD,",
-       "  DESKTOP_ROWS,\n  DESKTOP_STATUS,\n  MOBILE_CARD,")
+      "import { localizedDownloadContent } from '@/features/marketing/download/content';",
+      "import { DESKTOP_STATUS, localizedDownloadContent } from '@/features/marketing/download/content';")
 
 # ---- contact : rebrand, real emails, neutralize kortix refs ----
 patch("src/app/(public)/(marketing)/contact/page.tsx",
