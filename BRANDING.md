@@ -40,13 +40,14 @@ The hard part of a reskin is *keeping it across `git pull`*. If you edit the
 Suna source directly, every upstream update conflicts.
 
 **Solution:** the branding is an external **overlay** at
-`/root/dosco-brand/`, applied to a *clean* Suna checkout right before each
-build and then discarded. The Suna repo itself never stores your changes, so
-`git reset --hard upstream/main` is always conflict-free.
+`/root/dosco-brand/`, applied to the Suna checkout right before each
+build. Day-to-day the stamp is committed on `main` as squashed
+`chore(brand)` commits; `apply.sh` restores `apps/web` from `HEAD` and
+re-stamps, so re-running it after an upstream sync is conflict-free.
 
 ```
-/root/suna/            # upstream checkout (v0.13.5, branch local-dev)
-        ↑ apply.sh stamps branding here (temporarily)
+/root/dosco-suna/    # fork checkout (branch main, stamps committed)
+        ↑ apply.sh stamps branding here (then committed)
 /root/dosco-brand/    # ← the reskin source of truth (this repo)
         config.sh            # branding variables
         transform-en.py      # rewrites translations/en.json
@@ -56,8 +57,8 @@ build and then discarded. The Suna repo itself never stores your changes, so
         BRANDING.md          # this file
 ```
 
-Because the Suna working tree is restored to pristine before each apply, the
-overlay is fully reproducible and re-applyable.
+Because the Suna working tree is restored to the last stamped `HEAD` before
+each apply, the overlay is fully reproducible and re-applyable.
 
 ---
 
@@ -113,7 +114,7 @@ pnpm --version      # 8.11.0
 
 ```sh
 cd /root/dosco-brand
-bash apply.sh               # stamp Dosco branding onto /root/suna
+bash apply.sh               # stamp Dosco branding onto /root/dosco-suna
 bash build-frontend.sh      # → kortix/kortix-frontend:local
 ```
 
@@ -156,9 +157,9 @@ docker compose -p kortix-default -f docker-compose.yml up -d --no-deps frontend
 ## 7. Update workflow (pull upstream, keep the reskin)
 
 ```sh
-cd /root/suna
+cd /root/dosco-suna
 git fetch upstream
-git reset --hard upstream/main        # or a release tag, e.g. v0.13.6
+# merge or rebase upstream/main as usual for feature work, then:
 
 cd /root/dosco-brand
 bash apply.sh                         # re-stamp Dosco branding
@@ -168,8 +169,8 @@ cd /root/.config/kortix/self-host/default
 docker compose -p kortix-default -f docker-compose.yml up -d --no-deps frontend
 ```
 
-Because branding is external and `apply.sh` restores a clean checkout first, the
-`reset --hard` is always clean. Re-verify after each pull (see §9).
+Because branding is external and `apply.sh` restores a stamped checkout first, the
+re-stamp is reproducible. Re-verify after each pull (see §9).
 
 ---
 

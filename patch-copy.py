@@ -35,7 +35,7 @@ patch("src/features/marketing/landing/content.ts",
       "  sub: \"Dosco doesn't return chat. It returns work. Drop it into a sprint and it takes the role that sprint needs \u2014 engineer, accountant, analyst \u2014 every role run at full capacity. You don't get a paragraph back. You get the deliverable.\",\n"
       "  ctaPrimary: 'Get started',\n"
       "  ctaSecondary: 'Request demo',\n"
-      "  trust: 'Any model, your keys \u00b7 Self-host, VPC, or on-prem',")
+      "  trust: 'Any model, your keys \u00b7 VPC or on-prem',")
 
 patch("src/features/marketing/landing/content.ts",
       "  lead: 'The leading open-source alternative to',",
@@ -66,7 +66,7 @@ patch("src/features/marketing/landing/content.ts",
       "      id: 'kortix',\n"
       "      name: '\u706b Dosco Network',\n"
       "      body: 'Every layer above brought together in one platform your team owns, deploys and scales end to end \u2014 from the model to the finished work. That\u2019s \u706b Dosco Network.',\n"
-      "      chips: ['\u706b Dosco Network', 'Self-hostable', 'Yours down to the metal'],\n"
+      "      chips: ['\u706b Dosco Network', 'No lock-in', 'Yours down to the metal'],\n"
       "    },")
 
 # ---- cli-demo.tsx : tagline -> Dosco Agent Terminal ----
@@ -450,5 +450,72 @@ patch("src/app/(public)/(seo)/legal/page.tsx",
 patch("src/app/(public)/(seo)/legal/page.tsx",
       '<a href="mailto:info@kortix.com" className={LINK}>',
       '<a href="mailto:support@dosco.live" className={LINK}>')
+
+# ---- brand-rule reconciliation: no open-source / self-host phrasing ----
+# The stamp above already wrote these values; on a committed tree the
+# upstream `old` strings no longer match, so repair the stamped values
+# directly. Both forms are kept so fresh and stamped checkouts converge.
+patch("src/features/marketing/landing/content.ts",
+      "  trust: 'Any model, your keys \u00b7 Self-host, VPC, or on-prem',",
+      "  trust: 'Any model, your keys \u00b7 VPC or on-prem',")
+patch("src/features/marketing/landing/content.ts",
+      "      chips: ['\u706b Dosco Network', 'Self-hostable', 'Yours down to the metal'],",
+      "      chips: ['\u706b Dosco Network', 'No lock-in', 'Yours down to the metal'],")
+
+# ---- nav: relabel Self-hosted -> On-prem (route /self-hosted kept) ----
+patch("src/lib/site-config.ts",
+      "          name: 'Self-hosted',",
+      "          name: 'On-prem',")
+
+# ---- i18n-complete test: the blanked-label exemption is obsolete ----
+# transform-en.py now writes real copy ("No lock-in" / "On-prem" /
+# punctuation) instead of blanking, so the exemption would hide regressions.
+tip = f"{WEB}/src/i18n/i18n-complete.test.tsx"
+tis = open(tip, encoding="utf-8").read()
+tis2, tin = re.subn(
+    r"        // Dosco blanks self-host/open-source marketing strings on purpose\n"
+    r"        // \(brand stamp neutralizes them\) \u2014 the empty string IS the copy\.\n"
+    r"        if \(\n"
+    r"          locale === 'en' &&\n"
+    r"          \(key === 'text37a5d04181b5' \|\|\n"
+    r"            key === 'text67a0d2e0dab4' \|\|\n"
+    r"            key === 'text7859cc3ee2ae' \|\|\n"
+    r"            key === 'texta2536dee19c6' \|\|\n"
+    r"            key === 'textcb3f91d54eee'\)\n"
+    r"        \)\n"
+    r"          continue;\n",
+    "        // Dosco brand stamp writes real copy for former self-host /\n"
+    "        // open-source labels (\"No lock-in\", \"On-prem\") \u2014 blanks fail.\n",
+    tis,
+)
+if tin:
+    open(tip, "w", encoding="utf-8").write(tis2)
+    print("[patch] OK: src/i18n/i18n-complete.test.tsx (blank exemption removed)")
+else:
+    print("[patch] SKIP (no change): src/i18n/i18n-complete.test.tsx")
+
+# ---- careers contact: founder mailbox -> Dosco support ----
+patch("src/features/marketing/careers/content.ts",
+      "{ id: 'email', label: 'marko@kortix.com', href: 'mailto:marko@kortix.com', external: false },",
+      "{ id: 'email', label: 'support@dosco.live', href: 'mailto:support@dosco.live', external: false },")
+
+# ---- cli-demo: demo placeholder hosts -> dosco.live ----
+patch("src/components/home/cli-demo.tsx",
+      "t('git.kortix.com/acme/my-app', 'faded')",
+      "t('git.dosco.live/acme/my-app', 'faded')")
+patch("src/components/home/cli-demo.tsx",
+      "t('kortix.com/p/my-app', 'cyan')",
+      "t('dosco.live/p/my-app', 'cyan')")
+
+# ---- navbar brandkit zip: rename asset + href together ----
+import os as _os
+_bk = f"{WEB}/public/brandkit"
+_old_zip, _new_zip = "kortix-brand-assets.zip", "dosco-brand-assets.zip"
+if _os.path.exists(f"{_bk}/{_old_zip}") and not _os.path.exists(f"{_bk}/{_new_zip}"):
+    _os.rename(f"{_bk}/{_old_zip}", f"{_bk}/{_new_zip}")
+    print("[patch] OK: public/brandkit zip renamed")
+patch("src/components/home/navbar.tsx",
+      "'/brandkit/kortix-brand-assets.zip'",
+      "'/brandkit/dosco-brand-assets.zip'")
 
 print("[patch] done")

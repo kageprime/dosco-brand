@@ -60,7 +60,7 @@ def make_assets(public_brand: str) -> None:
 
 
 TAIL = f"""  // Dosco fallback art (stamped by dosco-brand patch-logo.py): upstream drew
-  // the Kortix mark inline here. We render transparent Dosco PNGs instead,
+  // its own mark inline here. We render transparent Dosco PNGs instead,
   // swapped per color scheme exactly like the org-branding images above.
   const fallbackAlt = branding?.app_name ?? 'Dosco';
 
@@ -128,6 +128,16 @@ def patch_component(web: str) -> None:
     p = os.path.join(web, "src", "components", "ui", "kortix-logo.tsx")
     s = open(p, encoding="utf-8").read()
     if MARKER in s:
+        # apply.sh's global whole-word `Kortix -> Dosco` pass runs BEFORE this
+        # script and rewrites our own comment into nonsense ("upstream drew the
+        # Dosco mark inline here. We render transparent Dosco PNGs instead").
+        # TAIL now avoids the word entirely; repair any already-corrupted copy.
+        for bad in ("the Kortix mark inline here", "the Dosco mark inline here"):
+            if bad in s:
+                s = s.replace(bad, "its own mark inline here")
+                open(p, "w", encoding="utf-8").write(s)
+                print("[logo] repaired comment mangled by the Kortix->Dosco pass")
+                return
         print("[logo] component already patched; skipping")
         return
     anchor = "  if (variant === 'icon') {"

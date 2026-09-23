@@ -58,28 +58,103 @@ s = s.replace(
     "The open-source AI command center for your company.",
     "The private AI command center for your company.",
 )
-# strip any remaining open-source / self-host phrasing in this file
+# strip any remaining open-source / self-host phrasing in this file.
+# Grammar-aware (mirrors transform-en.py): consume ed/ing/able forms whole,
+# collapse only space/comma debris, never touch periods or dashes. Also
+# repairs debris stamped by the old naive pass ('CLI. , any model',
+# 'ed AI agents') which is committed to HEAD.
 import re
+s = s.replace(
+    "or the CLI. , any model, your keys.",
+    "or the CLI. Any model, your keys.",
+)
+s = s.replace(
+    "AI platform, ed AI agents,",
+    "AI platform, private AI agents,",
+)
 s = re.sub(r"open[\s-]?source", "", s, flags=re.IGNORECASE)
-s = re.sub(r"self[\s-]?host(?:able)?", "", s, flags=re.IGNORECASE)
-s = re.sub(r"\s{2,}", " ", s)
+s = re.sub(r"self[\s-]?host(?:able|ed|ing)?", "", s, flags=re.IGNORECASE)
+s = re.sub(r"MIT[\s-]?licensed", "", s, flags=re.IGNORECASE)
+s = re.sub(r" {2,}", " ", s)
+s = re.sub(r",\s*,", ",", s)
+s = re.sub(r"\.\s*,\s*", ". ", s)
 open(p, "w", encoding="utf-8").write(s)
 PY
 
+# 4b) Patch robots policy host + visitor-pixel host + their tests.
+# robots.ts gates the Allow-all policy on CANONICAL_HOSTS={'kortix.com',...},
+# so dosco.live serves blanket Disallow (de-indexed). layout.tsx gates the
+# visitor pixel on the kortix.com host, so it never loads on dosco.live.
+# The two robots tests assert on kortix.com hosts and move with the fix.
+echo "[apply] patching robots.ts + layout.tsx site host..."
+python3 - "$DOSCO_CANONICAL" <<'PY'
+import re
+import sys
+
+canon = sys.argv[1].rstrip("/")
+host = re.sub(r"^https?://", "", canon).split("/")[0]
+www = f"www.{host}" if not host.startswith("www.") else host
+
+p = "apps/web/src/lib/seo/robots.ts"
+s = open(p, encoding="utf-8").read()
+s = re.sub(
+    r"const CANONICAL_HOSTS = new Set\(\[.*?\]\)",
+    f"const CANONICAL_HOSTS = new Set(['{host}', '{www}'])",
+    s,
+    flags=re.DOTALL,
+)
+s = s.replace(".kortix.com", f".{host}").replace("kortix.com", host)
+open(p, "w", encoding="utf-8").write(s)
+print("[apply] OK: robots.ts canonical hosts ->", host)
+
+lp = "apps/web/src/app/layout.tsx"
+s = open(lp, encoding="utf-8").read()
+s = s.replace("isKortixSiteHost", "isDoscoSiteHost")
+s = s.replace("'kortix.com'", f"'{host}'").replace("'.kortix.com'", f"'.{host}'")
+open(lp, "w", encoding="utf-8").write(s)
+print("[apply] OK: layout.tsx site host ->", host)
+
+for tp in (
+    "apps/web/src/lib/agent-discovery.test.ts",
+    "apps/web/src/lib/seo/public-content.test.ts",
+):
+    try:
+        t = open(tp, encoding="utf-8").read()
+    except FileNotFoundError:
+        continue
+    before = t
+    t = t.replace("renderRobotsTxt('kortix.com')", f"renderRobotsTxt('{host}')")
+    t = t.replace("dev.kortix.com", f"dev.{host}").replace(
+        "staging.kortix.com", f"staging.{host}"
+    )
+    if t != before:
+        open(tp, "w", encoding="utf-8").write(t)
+        print(f"[apply] OK: {tp} test hosts -> {host}")
+PY
 # 5) Patch manifest.json.
 echo "[apply] patching manifest.json..."
 python3 - <<'PY'
 import json
+import re
 p = "apps/web/public/manifest.json"
 d = json.load(open(p, encoding="utf-8"))
 d["name"] = "Dosco Agent Network"
 d["short_name"] = "Dosco"
-d["description"] = (
-    d.get("description", "")
-    .replace("Kortix", "Dosco")
-    .replace("open-source", "")
-    .replace("open source", "")
-)
+d["description"] = re.sub(
+    r" {2,}",
+    " ",
+    (
+        d.get("description", "")
+        .replace("Kortix", "Dosco")
+        .replace("open-source", "")
+        .replace("open source", "")
+    ),
+).strip()
+# Kortix native-app store listings: Dosco ships no native wrapper, so drop
+# the prompt-to-install-Kortix-app entirely (fixes the "the  AI" double
+# space left by the old removal too).
+d.pop("related_applications", None)
+d["prefer_related_applications"] = False
 json.dump(d, open(p, "w", encoding="utf-8"), indent=2)
 open(p, "a").write("\n")
 PY

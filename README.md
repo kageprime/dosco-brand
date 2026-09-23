@@ -2,7 +2,7 @@
 
 This directory holds the **branding layer** that turns the upstream Suna/Kortix
 frontend into the private "Dosco Agent Network" product. It is kept *outside*
-the Suna source tree on purpose: the Suna repo (`/root/suna`) never
+the Suna source tree on purpose: the Suna repo (`/root/dosco-suna`) never
 stores your changes, so pulling upstream never causes merge conflicts.
 
 ## Files
@@ -20,12 +20,13 @@ stores your changes, so pulling upstream never causes merge conflicts.
 
 ## Update workflow (pull upstream, keep reskin + local commits)
 
-The Suna repo uses a **two-branch model** — branding is committed, but on its
-own branch so upstream rebases stay conflict-free:
+The Suna repo works on **`main`** with branding committed as squashed
+`chore(brand)` stamp commits on top of feature work. Upstream syncs land as
+regular merges or rebases; `apply.sh` restores `apps/web` from `HEAD` and
+re-stamps, so re-running it after a sync is conflict-free:
 
 ```
-local-dev : upstream/main + local feature commits   (OAuth, Zen models, docs)
-deploy    : local-dev + ONE squashed brand-stamp commit   ← build from here
+main : feature commits + squashed chore(brand) stamp commits   ← build from here
 ```
 
 **The whole update cycle is one command:**
@@ -35,21 +36,19 @@ bash /root/dosco-brand/refresh-brand.sh            # sync + rebrand
 bash /root/dosco-brand/refresh-brand.sh --build    # … + frontend image
 ```
 
-What it does: fetches `upstream/main`, **rebases** `local-dev` onto it (never
-`reset --hard` — that would delete the local commits), then resets `deploy` to
-the new `local-dev`, re-runs `apply.sh`, and squashes the stamp into a fresh
-`chore(brand)` commit. If the rebase hits conflicts, resolve, `git add`,
-`git rebase --continue`, re-run.
+What it does: fetches `upstream/main` for inspection, re-runs `apply.sh`
+on the current `main` checkout, and squashes the stamp into a fresh
+`chore(brand)` commit. If feature work conflicts with an upstream sync,
+resolve it in the working tree first, then re-run.
 
 Manual equivalent:
 
 ```sh
-cd /root/suna
-git fetch upstream main && git rebase upstream/main
-git checkout deploy && git reset --hard local-dev
+cd /root/dosco-suna            # on main
+git fetch upstream main        # inspect what moved upstream
+# merge or rebase feature work as usual, then:
 bash /root/dosco-brand/apply.sh
 git add -A && git commit -m 'chore(brand): Dosco stamp'
-git checkout local-dev
 
 cd /root/dosco-brand && bash build-frontend.sh      # → kortix/kortix-frontend:local
 cd /root/.config/kortix/self-host/default
@@ -57,9 +56,8 @@ docker compose -p kortix-default --env-file .env up -d --no-deps frontend
 # (restart supabase-kong too if supabase-auth was recreated — Kong caches its IP)
 ```
 
-**Build/deploy from the `deploy` branch** — `build-frontend.sh` packages the
-working tree, so switch to `deploy` first (refresh-brand.sh leaves you on
-`local-dev`).
+**Build/deploy from `main`** — `build-frontend.sh` packages the
+working tree, so commit the stamp first (refresh-brand.sh does this).
 
 `apply.sh` runs `git checkout -- apps/web` first — **anything uncommitted in
 apps/web is lost**, so always commit local work before rebranding.
