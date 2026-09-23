@@ -199,6 +199,7 @@ def tidy(s: str, orig: str) -> str:
     s = re.sub(r"\u00b7\s*,\s*", "\u00b7 ", s)
     s = re.sub(r"\s*,\s*([.!?])", r"\1", s)
     s = re.sub(r"\.\s+\.", ".", s)
+    s = re.sub(r"\.\s*,", ".", s)
     s = re.sub(r" {2,}", " ", s)
     s = s.strip(" \t\r\n")
     if s:
