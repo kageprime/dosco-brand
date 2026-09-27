@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ONLY the frontend image (kortix/kortix-frontend:local) with Dosco branding.
+# Build ONLY the frontend image (dosco/dosco-frontend:local) with Dosco branding.
 # API + gateway stay on the upstream :0.13.5 images — not rebuilt here.
 set -euo pipefail
 
@@ -134,7 +134,7 @@ JS
 )
 
 # --- Build the image with buildx ---
-echo "[build] docker buildx build -> kortix/kortix-frontend:${TAG}"
-docker buildx build --no-cache -f "$REPO_ROOT/apps/web/Dockerfile" -t "kortix/kortix-frontend:${TAG}" "$REPO_ROOT"
+echo "[build] docker buildx build -> dosco/dosco-frontend:${TAG}"
+docker buildx build --no-cache -f "$REPO_ROOT/apps/web/Dockerfile" -t "dosco/dosco-frontend:${TAG}" "$REPO_ROOT"
 
-echo "[build] done. Image: kortix/kortix-frontend:${TAG}"
+echo "[build] done. Image: dosco/dosco-frontend:${TAG}"

@@ -20,17 +20,17 @@ Compose project named **`kortix-default`** rooted at:
 └── volumes/
 ```
 
-The running images (all `:0.13.5`) are pulled from Docker Hub:
+All three app images are built locally from this fork (`:local` tags):
 
 | Component | Image | Rebuilt locally? |
 |-----------|-------|------------------|
-| Frontend  | `kortix/kortix-frontend` | **Yes** (this repo) |
-| API       | `kortix/kortix-api`      | No — keeps `:0.13.5` |
-| LLM Gateway | `kortix/kortix-gateway` | No — keeps `:0.13.5` |
-| Supabase stack (db, auth, kong, storage, …) | supabase/* | No |
+| Frontend  | `dosco/dosco-frontend` | **Yes** (this repo) |
+| API       | `dosco/dosco-api`      | **Yes** (brand + fixes) |
+| LLM Gateway | `dosco/dosco-gateway` | **Yes** (brand + fixes) |
+| Supabase (local containers) | — | No — retired; data plane is hosted Supabase Cloud |
 
-We only modify the **frontend**. The API and gateway stay on the upstream images
-so the backend behaviour (agents, sandbox, billing, connectors) is unchanged.
+We modify the **frontend, API and gateway**. Supabase runs the upstream
+images so the data plane (agents, sandbox, billing, connectors) is unchanged.
 
 ---
 
@@ -52,7 +52,7 @@ re-stamps, so re-running it after an upstream sync is conflict-free.
         config.sh            # branding variables
         transform-en.py      # rewrites translations/en.json
         apply.sh             # stamps assets + copy/text/link changes
-        build-frontend.sh    # host build + docker buildx → kortix/kortix-frontend:local
+        build-frontend.sh    # host build + docker buildx → dosco/dosco-frontend:local
         assets/              # Dosco logos / favicons
         BRANDING.md          # this file
 ```
@@ -115,7 +115,7 @@ pnpm --version      # 8.11.0
 ```sh
 cd /root/dosco-brand
 bash apply.sh               # stamp Dosco branding onto /root/dosco-suna
-bash build-frontend.sh      # → kortix/kortix-frontend:local
+bash build-frontend.sh      # → dosco/dosco-frontend:local
 ```
 
 `build-frontend.sh`:
@@ -124,7 +124,7 @@ bash build-frontend.sh      # → kortix/kortix-frontend:local
   these inside the container, so this is only a fallback);
 - runs `next build` with `NEXT_OUTPUT=standalone` in `apps/web`;
 - runs the upstream "repair standalone Next package" step (pnpm symlink fix);
-- `docker buildx build -f apps/web/Dockerfile -t kortix/kortix-frontend:local .`.
+- `docker buildx build -f apps/web/Dockerfile -t dosco/dosco-frontend:local .`.
 
 ---
 
@@ -134,7 +134,7 @@ Two `.env` edits (already done) stop the self-host updater from overwriting your
 image, and point the frontend at the local build:
 
 ```ini
-FRONTEND_IMAGE=kortix/kortix-frontend:local
+FRONTEND_IMAGE=dosco/dosco-frontend:local
 KORTIX_AUTO_UPDATE=false
 KORTIX_IMAGE_PULL=never
 ```
@@ -163,7 +163,7 @@ git fetch upstream
 
 cd /root/dosco-brand
 bash apply.sh                         # re-stamp Dosco branding
-bash build-frontend.sh                # rebuild kortix/kortix-frontend:local
+bash build-frontend.sh                # rebuild dosco/dosco-frontend:local
 
 cd /root/.config/kortix/self-host/default
 docker compose -p kortix-default -f docker-compose.yml up -d --no-deps frontend
@@ -196,7 +196,7 @@ To change wording beyond the automatic phrase replacements, edit
 ## 9. Verification & rollback
 
 **Verify after a build/deploy:**
-- `docker ps | grep frontend` → `kortix/kortix-frontend:local`, healthy.
+- `docker ps | grep frontend` → `dosco/dosco-frontend:local`, healthy.
 - Curl the container (port 3000) or the public URL; check for
   `Dosco Agent Network`, and that `open source` / `github` / `kortix.com` /
   `self-host` are absent from the served HTML.
@@ -204,11 +204,11 @@ To change wording beyond the automatic phrase replacements, edit
 
 **Rollback:**
 ```sh
-# in the self-host dir .env:
-FRONTEND_IMAGE=kortix/kortix-frontend:0.13.5
+# in the self-host dir .env — point back at the previous local build:
+FRONTEND_IMAGE=dosco/dosco-frontend:local
 docker compose -p kortix-default -f docker-compose.yml up -d --no-deps frontend
 ```
-The original `:0.13.5` image is retained as a fallback.
+Keep the previous image tag around when deploying risky changes.
 
 ---
 

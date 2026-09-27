@@ -108,6 +108,9 @@ open(p, "w", encoding="utf-8").write(s)
 print("[apply] OK: robots.ts canonical hosts ->", host)
 
 lp = "apps/web/src/app/layout.tsx"
+import os as _os2
+if not _os2.path.exists(lp):
+    lp = "apps/web/src/app/[locale]/layout.tsx"
 s = open(lp, encoding="utf-8").read()
 s = s.replace("isKortixSiteHost", "isDoscoSiteHost")
 s = s.replace("'kortix.com'", f"'{host}'").replace("'.kortix.com'", f"'.{host}'")

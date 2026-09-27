@@ -10,9 +10,26 @@ import sys
 
 WEB = sys.argv[1]
 
-def patch(path, old, new):
+def resolve(path):
+    """Upstream moved marketing routes under src/app/[locale]/ — try both."""
     p = f"{WEB}/{path}"
-    s = open(p, encoding="utf-8").read()
+    import os as _os
+    if _os.path.exists(p):
+        return p
+    alt = path.replace("src/app/(public)/", "src/app/[locale]/(public)/", 1)
+    alt = alt.replace("src/app/(app)/", "src/app/[locale]/(app)/", 1)
+    alt = alt.replace("src/app/(system)/", "src/app/[locale]/(system)/", 1)
+    p2 = f"{WEB}/{alt}"
+    return p2 if _os.path.exists(p2) else p
+
+
+def patch(path, old, new):
+    p = resolve(path)
+    try:
+        s = open(p, encoding="utf-8").read()
+    except FileNotFoundError:
+        print(f"[patch] SKIP (missing file): {path}")
+        return
     if old not in s:
         print(f"[patch] SKIP (not found): {path}  -> {old[:60]!r}")
         return
@@ -221,7 +238,7 @@ patch("src/app/(public)/(seo)/about/page.tsx",
       "  keywords:\n"
       "    'Dosco, Dosco Network, AI agent, deliverables, AI coworker, autonomous work, AI agents',")
 
-ap = f"{WEB}/src/app/(public)/(seo)/about/page.tsx"
+ap = resolve("src/app/(public)/(seo)/about/page.tsx")
 as_ = open(ap, encoding="utf-8").read()
 as2, an = re.subn(
     r"title: 'About Dosco \u2013 The open AGI platform',",
@@ -378,7 +395,7 @@ patch("src/app/(public)/(marketing)/contact/page.tsx",
 # The whole block is Kortix open-source promo — star count on kortix-ai/suna,
 # the star chart, and repo links — none of which belongs on the Dosco landing
 # page. Pattern-based so upstream reshuffles of surrounding copy don't break it.
-hp = f"{WEB}/src/app/(public)/(marketing)/(home)/page.tsx"
+hp = resolve("src/app/(public)/(marketing)/(home)/page.tsx")
 try:
     s = open(hp, encoding="utf-8").read()
 except FileNotFoundError:
