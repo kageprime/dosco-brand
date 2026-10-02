@@ -295,6 +295,14 @@ with open(PATH, encoding="utf-8") as f:
 
 data = walk(data)
 
+# Upstream references these topup keys (credit-topup-section.tsx) but defines
+# them in no locale (missing since 0.13.45). Inject so the provider toggle
+# renders labels instead of MISSING_MESSAGE.
+topup = data.setdefault("billing", {}).setdefault("topup", {})
+topup.setdefault("payWithPaystack", "Pay with Paystack")
+topup.setdefault("payWithStripe", "Pay with Stripe")
+topup.setdefault("paymentMethod", "Payment method")
+
 with open(PATH, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
     f.write("\n")
